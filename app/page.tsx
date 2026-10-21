@@ -14,7 +14,9 @@ import {
   Flame,
   GraduationCap,
   Heart,
+  LogOut,
   LayoutDashboard,
+  UserRound,
   Menu,
   PlayCircle,
   Search,
@@ -46,6 +48,7 @@ const myCourses = [
 
 function Header({ onDashboard, onHome }: { onDashboard: () => void; onHome: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-20 max-w-7xl items-center gap-7 px-5 lg:px-8">
@@ -61,8 +64,16 @@ function Header({ onDashboard, onHome }: { onDashboard: () => void; onHome: () =
         <nav className="ml-auto hidden items-center gap-5 md:flex">
           <button onClick={onDashboard} className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground">Mis cursos</button>
           <button className="text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground">Enseña en aula</button>
-          <Button variant="outline" className="h-10 rounded-xl px-4">Iniciar sesión</Button>
-          <Button className="h-10 rounded-xl bg-[#635bff] px-4 hover:bg-[#5149e6]">Regístrate gratis</Button>
+          <div className="relative">
+            <button onClick={() => setProfileOpen(!profileOpen)} className="flex items-center gap-2 rounded-xl p-1.5 pr-2 transition-colors hover:bg-[#f1f2f8]" aria-expanded={profileOpen} aria-haspopup="menu" aria-label="Abrir menú de usuario">
+              <Avatar className="size-9"><AvatarImage src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80" alt="Alex Martínez" /><AvatarFallback>AM</AvatarFallback></Avatar><ChevronDown className="size-4 text-muted-foreground" />
+            </button>
+            {profileOpen && <div role="menu" className="absolute right-0 top-12 z-50 w-52 rounded-2xl border border-border bg-white p-2 shadow-xl shadow-slate-200/60">
+              <div className="border-b px-3 pb-3 pt-2"><p className="text-sm font-bold text-[#172033]">Alex Martínez</p><p className="text-xs text-muted-foreground">alex@correo.com</p></div>
+              <button role="menuitem" onClick={() => { setProfileOpen(false); onDashboard() }} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[#172033] hover:bg-[#f5f6ff]"><UserRound className="size-4 text-[#635bff]" />Mi perfil</button>
+              <button role="menuitem" onClick={() => setProfileOpen(false)} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[#172033] hover:bg-[#f5f6ff]"><LogOut className="size-4 text-muted-foreground" />Cerrar sesión</button>
+            </div>}
+          </div>
         </nav>
         <button className="ml-auto md:hidden" onClick={() => setMenuOpen(!menuOpen)} aria-label="Abrir menú">{menuOpen ? <X /> : <Menu />}</button>
       </div>
@@ -71,20 +82,20 @@ function Header({ onDashboard, onHome }: { onDashboard: () => void; onHome: () =
   )
 }
 
-function CourseCard({ course, onSelect }: { course: typeof courses[number]; onSelect: () => void }) {
+function CourseCard({ course, onSelect, favorite, onToggleFavorite }: { course: typeof courses[number]; onSelect: () => void; favorite: boolean; onToggleFavorite: () => void }) {
   return <Card className="group overflow-hidden border-border/70 bg-white py-0 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/50">
-    <div className="relative aspect-[16/9] overflow-hidden"><button onClick={onSelect} className="absolute inset-0 z-0" aria-label={`Ver curso ${course.title}`}><Image src={course.image} alt={course.title} fill sizes="(max-width: 768px) 100vw, 25vw" className="object-cover transition-transform duration-500 group-hover:scale-105" /></button><Badge className="pointer-events-none absolute left-3 top-3 border-0 bg-white/95 text-[#172033] shadow-sm">{course.category}</Badge><button className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white/90 text-[#172033]" aria-label="Añadir a favoritos"><Heart className="size-4" /></button></div>
+    <div className="relative aspect-[16/9] overflow-hidden"><button onClick={onSelect} className="absolute inset-0 z-0" aria-label={`Ver curso ${course.title}`}><Image src={course.image} alt={course.title} fill sizes="(max-width: 768px) 100vw, 25vw" className="object-cover transition-transform duration-500 group-hover:scale-105" /></button><Badge className="pointer-events-none absolute left-3 top-3 border-0 bg-white/95 text-[#172033] shadow-sm">{course.category}</Badge><button onClick={onToggleFavorite} className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white/90 text-[#172033] shadow-sm transition-colors hover:bg-white" aria-label={favorite ? 'Quitar de favoritos' : 'Añadir a favoritos'} aria-pressed={favorite}><Heart className={favorite ? 'size-4 fill-[#ef6b7a] text-[#ef6b7a]' : 'size-4'} /></button></div>
     <CardContent className="flex flex-col gap-3 p-4"><button onClick={onSelect} className="text-left"><h3 className="line-clamp-2 min-h-12 text-[15px] font-bold leading-6 text-[#172033]">{course.title}</h3></button><p className="text-xs text-muted-foreground">{course.instructor}</p><div className="flex items-center gap-1 text-sm"><span className="font-bold text-[#b45309]">{course.rating}</span><span className="flex text-[#f59e0b]">{[1,2,3,4,5].map((i) => <Star key={i} className="size-3.5 fill-current" />)}</span><span className="text-xs text-muted-foreground">({course.students})</span></div><div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="flex items-center gap-1"><PlayCircle className="size-3.5" />{course.lessons}</span><span className="flex items-center gap-1"><Clock3 className="size-3.5" />{course.duration}</span></div><div className="flex items-center gap-2 pt-1"><span className="text-lg font-extrabold text-[#172033]">{course.price}</span><span className="text-xs text-muted-foreground line-through">{course.oldPrice}</span></div></CardContent>
   </Card>
 }
 
-function Home({ onSelect, onDashboard }: { onSelect: (id: number) => void; onDashboard: () => void }) {
+function Home({ onSelect, onDashboard, favorites, onToggleFavorite }: { onSelect: (id: number) => void; onDashboard: () => void; favorites: number[]; onToggleFavorite: (id: number) => void }) {
   const [query, setQuery] = useState('')
   const filtered = useMemo(() => courses.filter((course) => course.title.toLowerCase().includes(query.toLowerCase()) || course.category.toLowerCase().includes(query.toLowerCase())), [query])
   return <><Header onDashboard={onDashboard} onHome={() => window.scrollTo({ top: 0, behavior: 'smooth' })} /><main>
     <section className="overflow-hidden bg-[#f5f6ff]"><div className="mx-auto grid max-w-7xl items-center gap-10 px-5 py-16 md:grid-cols-[1.05fr_.95fr] md:px-8 md:py-24"><div><Badge className="mb-6 border-0 bg-[#e6e4ff] px-3 py-1.5 text-[#5149e6]">APRENDE SIN LÍMITES</Badge><h1 className="max-w-xl text-4xl font-black leading-[1.08] tracking-[-0.05em] text-[#172033] md:text-6xl">Tu próximo gran <span className="text-[#635bff]">salto</span> empieza aquí.</h1><p className="mt-6 max-w-lg text-lg leading-8 text-[#5d6679]">Aprende de los mejores profesionales y transforma tus ideas en habilidades que abren puertas.</p><div className="relative mt-8 max-w-lg"><Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" /><Input value={query} onChange={(e) => setQuery(e.target.value)} className="h-14 rounded-2xl border-0 bg-white pl-12 pr-32 shadow-lg shadow-indigo-100/60" placeholder="Busca un curso, habilidad o tema..." /><Button className="absolute right-1.5 top-1.5 h-11 rounded-xl bg-[#635bff] px-4 hover:bg-[#5149e6]">Buscar</Button></div><div className="mt-6 flex flex-wrap gap-5 text-sm text-muted-foreground"><span className="flex items-center gap-2"><CheckCircle2 className="size-4 text-[#635bff]" />Contenido práctico</span><span className="flex items-center gap-2"><CheckCircle2 className="size-4 text-[#635bff]" />Aprende a tu ritmo</span></div></div><div className="relative hidden h-[360px] md:block"><div className="absolute right-0 top-0 h-72 w-72 rounded-[3rem] bg-[#dcd9ff]" /><div className="absolute bottom-0 left-8 h-60 w-60 rounded-[3rem] bg-[#ffe2b8]" /><div className="absolute left-16 top-10 h-72 w-80 rotate-3 overflow-hidden rounded-[2.5rem] border-8 border-white shadow-2xl"><Image src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=900&q=85" alt="Estudiantes aprendiendo juntos" fill sizes="320px" className="object-cover" /></div><div className="absolute bottom-8 right-3 flex items-center gap-3 rounded-2xl bg-white p-4 shadow-xl"><span className="flex size-10 items-center justify-center rounded-xl bg-[#e4f9ef] text-[#149a5b]"><Trophy className="size-5" /></span><div><p className="text-xs text-muted-foreground">Cursos completados</p><p className="font-extrabold text-[#172033]">+2.4 millones</p></div></div></div></div></section>
     <section className="mx-auto max-w-7xl px-5 py-14 md:px-8"><div className="mb-8 flex items-end justify-between"><div><p className="mb-2 text-sm font-bold uppercase tracking-[0.18em] text-[#635bff]">ELIGE TU CAMINO</p><h2 className="text-3xl font-black tracking-[-0.04em] text-[#172033]">Explora por categorías</h2></div><button className="hidden items-center gap-2 text-sm font-bold text-[#635bff] sm:flex">Ver todas <ArrowRight className="size-4" /></button></div><div className="grid grid-cols-2 gap-3 md:grid-cols-4"><button className="flex items-center gap-3 rounded-2xl bg-[#eef0ff] p-4 text-left transition-transform hover:-translate-y-1"><span className="flex size-11 items-center justify-center rounded-xl bg-white text-[#635bff]"><Code2 /></span><span><b className="block text-sm text-[#172033]">Desarrollo</b><small className="text-xs text-muted-foreground">1.240 cursos</small></span></button><button className="flex items-center gap-3 rounded-2xl bg-[#fff0e8] p-4 text-left transition-transform hover:-translate-y-1"><span className="flex size-11 items-center justify-center rounded-xl bg-white text-[#ee7b35]"><Compass /></span><span><b className="block text-sm text-[#172033]">Diseño</b><small className="text-xs text-muted-foreground">830 cursos</small></span></button><button className="flex items-center gap-3 rounded-2xl bg-[#e9f8f0] p-4 text-left transition-transform hover:-translate-y-1"><span className="flex size-11 items-center justify-center rounded-xl bg-white text-[#149a5b]"><LayoutDashboard /></span><span><b className="block text-sm text-[#172033]">Negocios</b><small className="text-xs text-muted-foreground">620 cursos</small></span></button><button className="flex items-center gap-3 rounded-2xl bg-[#fff4d9] p-4 text-left transition-transform hover:-translate-y-1"><span className="flex size-11 items-center justify-center rounded-xl bg-white text-[#d99000]"><Flame /></span><span><b className="block text-sm text-[#172033]">Marketing</b><small className="text-xs text-muted-foreground">540 cursos</small></span></button></div></section>
-    <section className="mx-auto max-w-7xl px-5 pb-20 md:px-8"><div className="mb-8 flex items-end justify-between"><div><p className="mb-2 text-sm font-bold uppercase tracking-[0.18em] text-[#635bff]">SELECCIÓN DEL EQUIPO</p><h2 className="text-3xl font-black tracking-[-0.04em] text-[#172033]">Cursos destacados</h2></div><button className="flex items-center gap-2 text-sm font-bold text-[#635bff]">Ver catálogo <ArrowRight className="size-4" /></button></div>{filtered.length ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{filtered.map((course) => <CourseCard key={course.id} course={course} onSelect={() => onSelect(course.id)} />)}</div> : <p className="rounded-2xl border border-dashed p-10 text-center text-muted-foreground">No encontramos cursos para “{query}”.</p>}</section>
+    <section className="mx-auto max-w-7xl px-5 pb-20 md:px-8"><div className="mb-8 flex items-end justify-between"><div><p className="mb-2 text-sm font-bold uppercase tracking-[0.18em] text-[#635bff]">SELECCIÓN DEL EQUIPO</p><h2 className="text-3xl font-black tracking-[-0.04em] text-[#172033]">Cursos destacados</h2></div><button className="flex items-center gap-2 text-sm font-bold text-[#635bff]">Ver catálogo <ArrowRight className="size-4" /></button></div>{filtered.length ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{filtered.map((course) => <CourseCard key={course.id} course={course} onSelect={() => onSelect(course.id)} favorite={favorites.includes(course.id)} onToggleFavorite={() => onToggleFavorite(course.id)} />)}</div> : <p className="rounded-2xl border border-dashed p-10 text-center text-muted-foreground">No encontramos cursos para “{query}”.</p>}</section>
   </main></>
 }
 
@@ -100,8 +111,10 @@ function Dashboard({ onHome, onSelect }: { onHome: () => void; onSelect: (id: nu
 export default function Page() {
   const [view, setView] = useState<'home' | 'detail' | 'dashboard'>('home')
   const [selectedId, setSelectedId] = useState(1)
+  const [favorites, setFavorites] = useState<number[]>([])
+  const toggleFavorite = (id: number) => setFavorites((current) => current.includes(id) ? current.filter((favoriteId) => favoriteId !== id) : [...current, id])
   const selected = courses.find((course) => course.id === selectedId) ?? courses[0]
   if (view === 'detail') return <CourseDetail course={selected} onBack={() => setView('home')} onDashboard={() => setView('dashboard')} />
   if (view === 'dashboard') return <Dashboard onHome={() => setView('home')} onSelect={(id) => { setSelectedId(id); setView('detail') }} />
-  return <Home onDashboard={() => setView('dashboard')} onSelect={(id) => { setSelectedId(id); setView('detail') }} />
+  return <Home onDashboard={() => setView('dashboard')} onSelect={(id) => { setSelectedId(id); setView('detail') }} favorites={favorites} onToggleFavorite={toggleFavorite} />
 }
